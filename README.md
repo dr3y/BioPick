@@ -15,3 +15,4 @@ Key features of BioPick are:
 7. Raspberry Pi camera for colony identification
 
 BioPick is under development so many things can change.
+Melzi firmware can be found [here](https://github.com/dr3y/Marlin/tree/BioPick_0.0.1)
