@@ -1,6 +1,8 @@
 # BioPick
 ![colony picking timeline](images/colony_pick_timeline.png)
+
 ![robot schematic](images/robot_cartoon.png)
+
 BioPick is an open source purpose-built colony picking robot. The idea is to shorten the time from conception to realization of molecular cloning, by allowing automated colony growth and picking as soon as the colonies are grown into liquid culture, to save a day of growth time.
 Key features of BioPick are:
 
