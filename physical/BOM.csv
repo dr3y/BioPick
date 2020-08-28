@@ -1,0 +1,25 @@
+name,comment,link,quantity,price,subtotal
+V-slot extrusion,"470mm, 310mm, 120mm, 5x140mm",https://www.ebay.com/itm/V-Slot-20x20-Linear-Rail/263747600610 (500mm),4,5.49,
+Mini Carriage,,https://www.amazon.com/Aibecy-Aluminum-Profile-Printer-Accessories/dp/B07SMN97B8/,3,17.99,
+inductive heater,,https://www.amazon.com/Driver-Module-Voltage-Induction-Heating/dp/B01CNM24YM,1,16.7,
+melzi board,i used a 1.2 board,https://www.amazon.com/MagiDeal-Motherboard-Controller-Mainboard-Control/dp/B0762DXQ8N/,1,27.99,
+timing belt and drive pulleys,,https://www.amazon.com/Zeelo-Timing-Pulley-Meters-Printer/dp/B07XG9JN5B/,1,12.99,
+idler pulleys,,https://www.amazon.com/LICTOP-Aluminum-Timing-Toothless-Printer/dp/B07L9QDVC8,1,13.99,
+NEMA17 motor,,https://www.amazon.com/17HS4401-1-8%C2%B02-Phrase-Universal-Electric-Engraving/dp/B07C1MVTZC/,3,9.99,
+low profile NEMA17 motor,i didnt use this one but i think it will work,https://www.amazon.com/Short-Bipolar-Motor-18-4oz-13Ncm/dp/B00PNEQ79Q/,1,10.99,
+12g metal gear servo,,https://www.ebay.com/itm/EMX-SV-0275-EMAX-ES08MAII-12g-Analog-Metal-Gear-Servo/122561614622,2,9.69,
+63mm OD 2mm width o ring,you need 1 but 10 come in a pack,https://www.amazon.com/gp/product/B07GJB5WC9,1,5.49,
+28mm OD 2mm width o ring,you need 2 but 10 come in a pack,https://www.amazon.com/gp/product/B07GJ9K5JC,1,5.39,
+5x14x5 bearings,you need 6 bearings but 10 come in a pack,https://www.ebay.com/itm/TRB-RC-5x14x5mm-Precision-Ball-Bearings-ABEC-3-Metal-Shields-10/153903302701,1,11.12,
+12v to 5v buck converter,you need 1 but 10 come in a pack,https://www.amazon.com/Zixtec-LM2596-Converter-Module-1-25V-30V/dp/B07VVXF7YX/,1,13.99,
+M3 plastite screw set,individual screw amounts will be listed later,https://www.amazon.com/gp/product/B07BTNDC6W,1,15.59,
+no 2 5/16 plastite screw phillips,you need ~30 but 50 come in a pack,mcmaster,1,4.62,""
+endstop switch,you need 3 but 25 come in a pack,https://www.amazon.com/Cylewet-25Pcs-Switch-Arduino-CYT1073/dp/B073TYWX86/,1,6.99,""
+stepper motor wires,you need 4 but 10 come in a pack,https://www.amazon.com/UEETEK-Stepper-Connectors-HX2-54-Printer/dp/B06ZZ7SMD7/,1,14.69,""
+24 awg wire,for endstops and stuff,https://www.amazon.com/22GA-Hook-Wire-Kit-Electrical/dp/B087TJNJZS,1,12.99,""
+dupont connectors,i didnt use this kit i just had some connectors on hand,https://www.amazon.com/Qibaok-Crimping-Ratcheting-Connectors-0-1-0-5mm%C2%B2/dp/B07ZK5F8HP,1,29.99,""
+optical endstop,you need 1 but 6 come in a pack,https://www.amazon.com/HESAI-Printer-Mechanical-Optical-Makerbot/dp/B0719K9Z9R,1,8.99,""
+T nuts and stuff,"","","","",""
+raspberry pi zero W,"",https://www.amazon.com/gp/product/B075FRRVLR,1,23.99,""
+raspberry pi cam with zero cable,"",https://www.amazon.com/Aokin-Raspberry-Camera-Module-OV5647/dp/B07RXKZ1KN,1,9.59,""
+M3 screws,"","","","",""

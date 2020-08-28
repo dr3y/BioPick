@@ -1,3 +1,15 @@
+;first plate position
+;X60 Y21 Z1.15
+;backlight position
+;X341.00 Y189.00 Z10.5
+;A1 on culture plate position
+;X295.00 Y76.00 Z58.00 E0 ;top
+;X289.00 Y91.00 Z58.00 E-2.50 ;top
+;sterilize position
+;X317.00 Y189.00 Z:49
+
+
+
 G28
 G1 X460 Y370 F5000 ; move to a spot
 M400
