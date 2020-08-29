@@ -15,4 +15,4 @@ def gcode_home(retchar = "\n"):
         "G28 X0 ;home x ",
     ]
     retval = retchar.join(homecode)+retchar
-    return retval
+    return homecode
