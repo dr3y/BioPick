@@ -166,11 +166,11 @@ class colonyPicker:
         assert(self.robopos is not None)
         lidgrip_pos = self.robopos["servo"]["lid_grip"]["S1pos"]
         self.servo_move(1,lidgrip_pos)
-    def gripper_is_lid_up(self):
+    def gripper_is_lid_down(self):
         assert(self.robopos is not None)
         lid_down = self.robopos["servo"]["lid_down"]["S0pos"]
         return self.get_servo_pos(0)==lid_down
-    def gripper_is_lid_down(self):
+    def gripper_is_lid_up(self):
         assert(self.robopos is not None)
         lid_up = self.robopos["servo"]["lid_up"]["S0pos"]
         return self.get_servo_pos(0)==lid_up
