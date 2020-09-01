@@ -251,7 +251,12 @@ class colonyPicker:
         self.ungrip()
         self.move_robot(pz = lid_z_height+10)
 
-
+    def light_on(self,strength=0.5):
+        value = int(strength*255)
+        self.send_gcode_multiline(["M106 S"+str(value)])
+    def light_off(self):
+        self.send_gcode_multiline(["M106 S0"])
+    
     def move_needle(self,needle_pos=0,needle_pos_name="culture_24well",retract=True,offset_x=0,offset_y=0):
         assert(self.robopos is not None)
         if(not (needle_pos in self.robopos[needle_pos_name])):

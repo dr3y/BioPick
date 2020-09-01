@@ -1,6 +1,7 @@
 import robot_motion as rm
 from picamera import PiCamera
 import os
+import time
 
 if(__name__=="__main__"):
     x = rm.colonyPicker({},{},'/dev/serial0',19200)
@@ -17,7 +18,11 @@ if(__name__=="__main__"):
             x.get_plate(plateloc)
             x.put_plate("0","plate_backlight","up")
             x.move_robot(px=x.robopos["neutral_position"]["0"]["X"])
+            x.light_on()
+            time.sleep(1)
             camera.capture(impath)
+            time.sleep(1)
+            x.light_off()
             x.get_plate("0","plate_backlight","up")
             x.put_plate(staging_floors[0],"plate_staging")
             plates_stored.append([staging_floors[0],plateloc])
