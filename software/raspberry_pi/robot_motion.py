@@ -98,14 +98,23 @@ class colonyPicker:
             if(retval not in gcode_line):
                 self.robocomm.write(bytes(gcode_line+retval, 'utf-8'))
                 self.robocomm.flush()
-                _=self.read_till_ok()
+                machine_output=self.read_till_ok()
             else:
                 gsplit = gcode_line.split(retval)
                 for subline in gsplit:
                     self.robocomm.write(bytes(subline+retval, 'utf-8'))
                     self.robocomm.flush()
-                    _=self.read_till_ok()
-        return True
+                    machine_output=self.read_till_ok()
+        return machine_output
+    def get_servo_pos(self,servonum=0):
+        self.send_gcode_multiline(["M400"])
+        servo_output = self.send_gcode_multiline(["M280 P"+str(servonum)])
+        posnum = None
+        for sline in servo_output.split("\\n"):
+            if("Servo "+str(servonum) in sline):
+                newsplit = sline.split(":")
+                posnum = int(newsplit[-1])
+        return posnum
     def move_robot(self,px=None,py=None,pz=None,pe=None,F=None):
         assert(sum([px is not None,py is not None, pz is not None, pe is not None])>=1)
         if(self.robocomm is None or not self.robocomm.is_open):
@@ -138,9 +147,13 @@ class colonyPicker:
         if(self.robocomm is None or not self.robocomm.is_open):
             print("Robot is not connected")
             return
-        self.send_gcode_multiline(["M400",
-                                   "M280 P{} S{}".format(servonum,position),
-                                   "G4 P500"])
+        spos = self.get_servo_pos(servonum)
+        if(spos == position):
+            return
+        else:
+            self.send_gcode_multiline(["M400",
+                                    "M280 P{} S{}".format(servonum,position),
+                                    "G4 P500"])
     def grip(self):
         assert(self.robopos is not None)
         grip_pos = self.robopos["servo"]["grip"]["S1pos"]
@@ -153,6 +166,14 @@ class colonyPicker:
         assert(self.robopos is not None)
         lidgrip_pos = self.robopos["servo"]["lid_grip"]["S1pos"]
         self.servo_move(1,lidgrip_pos)
+    def gripper_is_lid_up(self):
+        assert(self.robopos is not None)
+        lid_down = self.robopos["servo"]["lid_down"]["S0pos"]
+        return self.get_servo_pos(0)==lid_down
+    def gripper_is_lid_down(self):
+        assert(self.robopos is not None)
+        lid_up = self.robopos["servo"]["lid_up"]["S0pos"]
+        return self.get_servo_pos(0)==lid_up
     def flip_lid_down(self):
         assert(self.robopos is not None)
         lid_down = self.robopos["servo"]["lid_down"]["S0pos"]
@@ -194,17 +215,20 @@ class colonyPicker:
             raise ValueError("no position found for plate "+str(platepos)+" in "+str(platepos_name))
         plate_pos_coords = self.robopos[platepos_name][platepos]
         #TODO this next part should be done only if the servo is in the wrong spot!
+
         neut_pos = self.robopos["neutral_position"]["0"]
-        self.move_robot(pz=top_pos)
-        self.move_robot(px = neut_pos["X"],py=neut_pos["Y"])
-        
-        self.move_robot(pz=flip_height)
-        if(plate_orientation == "down"):
-            self.flip_lid_down()
-        elif(plate_orientation=="up"):
-            self.flip_lid_up()
-        else:
-            raise ValueError("invalid plate orientation "+str(plate_orientation)+", only 'up' or 'down' accepted")
+        if(((plate_orientation == "down") and (not self.gripper_is_lid_down())) or
+            ((plate_orientation == "up") and (not self.gripper_is_lid_up()))):
+            self.move_robot(pz=top_pos)
+            self.move_robot(px = neut_pos["X"],py=neut_pos["Y"])
+            
+            self.move_robot(pz=flip_height)
+            if(plate_orientation == "down"):
+                self.flip_lid_down()
+            elif(plate_orientation=="up"):
+                self.flip_lid_up()
+            else:
+                raise ValueError("invalid plate orientation "+str(plate_orientation)+", only 'up' or 'down' accepted")
         self.move_robot(pz=top_pos)
         self.move_robot(px = plate_pos_coords["X"],py = plate_pos_coords["Y"])
         if("E" in plate_pos_coords):
