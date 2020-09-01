@@ -1,6 +1,8 @@
 name,position,comment,px,py,pz,pe,s0pos,s1pos
 plate_backlight,0,bottom,360.6,187.2,12.35,2.5,35,
 plate_staging,0,,158.1,22.8,2.75,,,
+plate_staging,1,,158.1,22.8,16.25,,,
+plate_staging,2,,158.1,22.8,29.75,,,
 needle_pos,sterilization,,332.9,191.9,47,,,
 plate_stack,A1,,79.8,22.8,2.75,,,
 plate_stack,A2,,79.8,22.8,16.25,,,
