@@ -6,7 +6,7 @@ import time
 if(__name__=="__main__"):
     x = rm.colonyPicker({},{},'/dev/serial0',19200)
     img_folder = "pictures"
-    camera = PiCamera(sensor_mode=1)
+    camera = PiCamera()
     camera.resolution = '1920x1080'
     plates = {"A1":"first_plate","A2":"second_plate","A3":"third_plate"}
     plate_order = ["C3","C2","C1","B3","B2","B1","A3","A2","A1"]
