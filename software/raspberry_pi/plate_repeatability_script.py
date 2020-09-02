@@ -8,7 +8,7 @@ if(__name__=="__main__"):
     img_folder = "pictures"
     camera = PiCamera()
     camera.resolution = '1920x1080'
-    camera.shutter_speed = 1000
+    camera.shutter_speed = 2000
     plates = {"A1":"first_plate","A2":"second_plate","A3":"third_plate"}
     plate_order = ["C3","C2","C1","B3","B2","B1","A3","A2","A1"]
     staging_floors = sorted(list(x.robopos["plate_staging"].keys()))
