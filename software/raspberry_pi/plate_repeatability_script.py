@@ -15,7 +15,7 @@ if(__name__=="__main__"):
 
     plates_stored = []
     for stack in plate_order:
-        for plate_num in stack:
+        for plate_num in plate_order[stack]:
             plateloc = stack+str(plate_num)
             if(plateloc in plates):
                 impath = os.path.join(".",img_folder,plateloc+".png")
