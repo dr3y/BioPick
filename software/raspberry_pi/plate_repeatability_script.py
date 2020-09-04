@@ -16,7 +16,7 @@ if(__name__=="__main__"):
 
     camera = PiCamera()
     camera.resolution = '1920x1080'
-    camera.shutter_speed = 3000
+    camera.shutter_speed = 2000
     rawCapture = PiRGBArray(camera)
     plates = {"A1":"first_plate","A2":"second_plate","A3":"third_plate","B1":"fifth"}
     plate_order = {"C":[3,2,1],"B":[3,2,1],"A":[3,2,1]}
