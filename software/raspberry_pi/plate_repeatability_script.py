@@ -1,14 +1,23 @@
 import robot_motion as rm
 from picamera import PiCamera
+from picamera.array import PiRGBArray
+import cv2
 import os
 import time
+import pickle
 
 if(__name__=="__main__"):
     x = rm.colonyPicker({},{},'/dev/serial0',19200)
     img_folder = "pictures"
+
+    
+    pickfle = open("camera_matrix.pckl","rb")
+    mtx,dist = pickle.load(pickfle)
+
     camera = PiCamera()
     camera.resolution = '1920x1080'
-    camera.shutter_speed = 2000
+    camera.shutter_speed = 3000
+    rawCapture = PiRGBArray(camera)
     plates = {"A1":"first_plate","A2":"second_plate","A3":"third_plate","B2":"fourth","B1":"fifth"}
     plate_order = {"C":[3,2,1],"B":[3,2,1],"A":[3,2,1]}
     staging_floors = sorted(list(x.robopos["plate_staging"].keys()))
@@ -19,13 +28,27 @@ if(__name__=="__main__"):
             plateloc = stack+str(plate_num)
             if(plateloc in plates):
                 impath = os.path.join(".",img_folder,plateloc+".png")
+                impath_calib = os.path.join(".",img_folder,plateloc+"_calibrated.png")
                 x.get_plate(plateloc)
                 x.put_plate("0","plate_backlight","up")
                 x.grab_lid()
+                #TODO move up here
                 x.move_robot(px=x.robopos["neutral_position"]["0"]["X"])
                 x.light_on(.7)
                 x.send_gcode_multiline(["M400"])
-                camera.capture(impath)
+                #capture the image using the camera
+                camera.capture(rawCapture,format="bgr")
+                img = rawCapture.array
+                cv2.imwrite(impath,img)
+                #undistort the image
+                h,  w = img.shape[:2]
+                newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
+                dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
+                x,y,w,h = roi
+                dst = dst[y:y+h, x:x+w]
+                
+                cv2.imwrite(impath_calib,dst)
+
                 x.light_off()
                 x.place_lid()
                 x.get_plate("0","plate_backlight","up")
@@ -35,4 +58,5 @@ if(__name__=="__main__"):
         for plate_stored in plates_stored[::-1]:
             x.get_plate(plate_stored[0],"plate_staging")
             x.put_plate(plate_stored[1])
+        #TODO reset plates stored every stack
         plates_stored = []
