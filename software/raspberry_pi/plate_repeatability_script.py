@@ -15,7 +15,7 @@ if(__name__=="__main__"):
     mtx,dist = pickle.load(pickfle)
 
     camera = PiCamera()
-    camera.resolution = '1920x1080'
+    camera.resolution = '1920x1088'
     camera.shutter_speed = 2000
     rawCapture = PiRGBArray(camera)
     plates = {"A1":"first_plate","A2":"second_plate","A3":"third_plate","B1":"fifth"}
