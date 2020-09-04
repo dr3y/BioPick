@@ -38,6 +38,7 @@ if(__name__=="__main__"):
                 motionsystem.light_on(.7)
                 motionsystem.send_gcode_multiline(["M400"])
                 #capture the image using the camera
+                rawCapture = PiRGBArray(camera)
                 camera.capture(rawCapture,format="bgr")
                 img = rawCapture.array
                 cv2.imwrite(impath,img)
