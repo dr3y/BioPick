@@ -1,64 +1,63 @@
 import robot_motion as rm
-from picamera import PiCamera
-from picamera.array import PiRGBArray
-import cv2
+try:
+    import robot_camera
+    picam_exists = True
+except ModuleNotFoundError:
+    print("no picamera!")
+    picam_exists=False
 import os
 import time
-import pickle
+import csv
+import copy
+def load_platefile(platefilename):
+    platedict = {}
+    with open(platefilename) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        line_count = 0
+        colnames = []
+        for row in csv_reader:
+            if line_count == 0:
+                colnames = row
+            else:
+                keyval = None
+                for val,colname in zip(row,colnames):
+                    if(colname== "position"):
+                        keyval = val
+                    elif(keyval is not None):
+                        platedict[keyval] = val
+            line_count+=1
+    return platedict
 
 if(__name__=="__main__"):
     motionsystem = rm.colonyPicker({},{},'/dev/serial0',19200)
+    robocam = robot_camera.robo_camera()
     img_folder = "pictures"
-
-    
-    pickfle = open("camera_matrix.pckl","rb")
-    mtx,dist = pickle.load(pickfle)
-
-    camera = PiCamera()
-    camera.resolution = '1920x1088'
-    camera.shutter_speed = 2000
-    rawCapture = PiRGBArray(camera)
-    plates = {"A1":"first_plate","A2":"second_plate","A3":"third_plate","B1":"fifth"}
-    plate_order = {"C":[3,2,1],"B":[3,2,1],"A":[3,2,1]}
-    staging_floors = sorted(list(motionsystem.robopos["plate_staging"].keys()))
+    plates = load_platefile("plates_to_use.csv")
 
     plates_stored = []
-    for stack in plate_order:
-        staging_floors = sorted(list(motionsystem.robopos["plate_staging"].keys()))
-        for plate_num in plate_order[stack]:
+    for stack in motionsystem.plate_order:
+        staging_floors = copy.deepcopy(motionsystem.staging_floors)
+        for plate_num in motionsystem.plate_order[stack]:
             plateloc = stack+str(plate_num)
             if(plateloc in plates):
-                impath = os.path.join(".",img_folder,plateloc+".png")
                 impath_calib = os.path.join(".",img_folder,plateloc+"_calibrated.png")
                 motionsystem.get_plate(plateloc)
                 motionsystem.put_plate("0","plate_backlight","up")
                 motionsystem.grab_lid()
+                #go up after grabbing the lid to avoid the induction heater
                 motionsystem.move_robot(pz = 65)
+                #move back so the camera can see the plate
                 motionsystem.move_robot(px=motionsystem.robopos["neutral_position"]["0"]["X"])
-                motionsystem.light_on(.7)
-                motionsystem.send_gcode_multiline(["M400"])
-                #capture the image using the camera
-                rawCapture = PiRGBArray(camera)
-                camera.capture(rawCapture,format="bgr")
-                img = rawCapture.array
-                cv2.imwrite(impath,img)
-                #undistort the image
-                h,  w = img.shape[:2]
-                newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
-                dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
-                x,y,w,h = roi
-                dst = dst[y:y+h, x:x+w]
-                
-                cv2.imwrite(impath_calib,dst)
-
-                motionsystem.light_off()
-                motionsystem.place_lid()
-                motionsystem.get_plate("0","plate_backlight","up")
-                motionsystem.put_plate(staging_floors[0],"plate_staging")
+                motionsystem.light_on(.7) #lights on
+                motionsystem.send_gcode_multiline(["M400"]) #wait for movement before the next part
+                platepic = robocam.capture(savepath=impath_calib) #take a picture
+                motionsystem.light_off() #done taking a picture so light off
+                motionsystem.place_lid() #replace the lid
+                motionsystem.get_plate("0","plate_backlight","up") #pick up the plate
+                motionsystem.put_plate(staging_floors[0],"plate_staging") #store it in the right place
                 plates_stored.append([staging_floors[0],plateloc])
                 staging_floors = staging_floors[1:]
         for plate_stored in plates_stored[::-1]:
             motionsystem.get_plate(plate_stored[0],"plate_staging")
             motionsystem.put_plate(plate_stored[1])
-        #TODO reset plates stored every stack
         plates_stored = []

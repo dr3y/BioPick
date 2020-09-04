@@ -8,9 +8,15 @@ class colonyPicker:
     def __init__(self,plate_dict,culture_plate,robocomm=None,\
                         robobaud=250000,hometimeout = 10,posfile="robot_positions.csv"):
         self.robocomm = robocomm
+        self.plate_order = {"C":[3,2,1],"B":[3,2,1],"A":[3,2,1]}
+        
         self.culture_plate = culture_plate
         self.plate_dict = plate_dict
         self.robopos = self.load_posfile(posfilename = posfile)
+        if(self.robopos is not None):
+            self.staging_floors = sorted(list(self.robopos["plate_staging"].keys()))
+        else:
+            self.staging_floors = None
         self.robocomm = None
         self.hometimeout = hometimeout #number of minutes without action before you need to home again
         self.lasthomed = -hometimeout
@@ -281,7 +287,7 @@ class colonyPicker:
     def light_off(self):
         self.send_gcode_multiline(["M106 S0"])
     
-    def move_needle(self,needle_pos=0,needle_pos_name="culture_24well",retract=True,offset_x=0,offset_y=0):
+    def move_needle(self,needle_pos=0,needle_pos_name="culture_24well",retract=True,offset_x=0,offset_y=0,offset_z=0):
         assert(self.robopos is not None)
         if(not (needle_pos in self.robopos[needle_pos_name])):
             raise ValueError("no position found for "+str(needle_pos)+" in "+str(needle_pos_name))
@@ -292,8 +298,14 @@ class colonyPicker:
             #move the culture plate out of the way if we need to
             self.move_robot(pe = needle_pos_coords["E"])
         self.move_robot(px=needle_pos_coords["X"]+offset_x,py=needle_pos_coords["Y"]+offset_y)
-        self.move_robot(pz = needle_pos_coords["Z"]+10)
-        self.move_robot(pz = needle_pos_coords["Z"],F=400)
+
+        needle_zpos_upper = needle_pos_coords["Z"]+offset_z+10
+        needle_zpos_lower = needle_pos_coords["Z"]+offset_z
+        if(needle_zpos_upper > 67):
+            needle_zpos_upper = 67
+
+        self.move_robot(pz = needle_zpos_upper)
+        self.move_robot(pz = needle_zpos_lower,F=400)
         if(retract):
             self.move_robot(pz=top_pos)
         

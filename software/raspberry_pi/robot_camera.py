@@ -1,32 +1,40 @@
 import numpy as np
-import cv2 as cv
+import cv2
+from picamera import PiCamera
+from picamera.array import PiRGBArray
+import pickle
 import glob
 import os
-# termination criteria
-criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-# prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-objp = np.zeros((6*7,3), np.float32)
-objp[:,:2] = np.mgrid[0:7,0:6].T.reshape(-1,2)
-# Arrays to store object points and image points from all the images.
-objpoints = [] # 3d point in real world space
-imgpoints = [] # 2d points in image plane.
-images = []
-images = [os.path.join(".","calibration",a+".png") for a in ["calib1","calib2","calib3","calib4","calib5"]]
-print(images)
-for fname in images:
-    print("reading "+fname)
-    img = cv.imread(fname)
-    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    # Find the chess board corners
-    ret, corners = cv.findChessboardCorners(gray, (6,5), None)
-    # If found, add object points, image points (after refining them)
-    print("we got "+str(ret)+" "+str(corners))
-    if ret == True:
-        objpoints.append(objp)
-        corners2 = cv.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
-        imgpoints.append(corners)
-        # Draw and display the corners
-        cv.drawChessboardCorners(img, (6,5), corners2, ret)
-        cv.imshow('img', img)
-        cv.waitKey(0)
-cv.destroyAllWindows()
+
+class robo_camera:
+    def __init__(self,resolution="1920x1080",shutter_speed=2000,camera_matrix="camera_matrix.pckl"):
+        self.mtx = None
+        self.dist = None
+        self.cam_calibrated = False
+        if(camera_matrix is not None):
+            pickfle = open(camera_matrix,"rb")
+            mtx,dist = pickle.load(pickfle)
+            self.mtx = mtx
+            self.dist = dist
+            self.cam_calibrated = True
+        self.camera = PiCamera()
+        self.camera.resolution = resolution
+        self.camera.shutter_speed = 2000
+    def capture(self,savepath=None):
+        rawCapture = PiRGBArray(self.camera)
+        self.camera.capture(rawCapture,format="bgr")
+        img = rawCapture.array
+        if(self.cam_calibrated):
+            #undistort the camera if it is calibrated
+            h,  w = img.shape[:2]
+            newcameramtx, roi=cv2.getOptimalNewCameraMatrix(self.mtx,self.dist,\
+                                                                (w,h),1,(w,h))
+            dst = cv2.undistort(img, self.mtx, self.dist, None, newcameramtx)
+            x,y,w,h = roi
+            dst = dst[y:y+h, x:x+w]
+            img = dst
+        if(savepath is not None):
+            #save it if that is desired
+            cv2.imwrite(savepath,img)
+        return img
+        
