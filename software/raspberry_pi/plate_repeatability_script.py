@@ -24,6 +24,7 @@ if(__name__=="__main__"):
 
     plates_stored = []
     for stack in plate_order:
+        staging_floors = sorted(list(motionsystem.robopos["plate_staging"].keys()))
         for plate_num in plate_order[stack]:
             plateloc = stack+str(plate_num)
             if(plateloc in plates):
