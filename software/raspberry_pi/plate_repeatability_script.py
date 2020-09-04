@@ -7,7 +7,7 @@ import time
 import pickle
 
 if(__name__=="__main__"):
-    x = rm.colonyPicker({},{},'/dev/serial0',19200)
+    motionsystem = rm.colonyPicker({},{},'/dev/serial0',19200)
     img_folder = "pictures"
 
     
@@ -18,9 +18,9 @@ if(__name__=="__main__"):
     camera.resolution = '1920x1080'
     camera.shutter_speed = 3000
     rawCapture = PiRGBArray(camera)
-    plates = {"A1":"first_plate","A2":"second_plate","A3":"third_plate","B2":"fourth","B1":"fifth"}
+    plates = {"A1":"first_plate","A2":"second_plate","A3":"third_plate","B1":"fifth"}
     plate_order = {"C":[3,2,1],"B":[3,2,1],"A":[3,2,1]}
-    staging_floors = sorted(list(x.robopos["plate_staging"].keys()))
+    staging_floors = sorted(list(motionsystem.robopos["plate_staging"].keys()))
 
     plates_stored = []
     for stack in plate_order:
@@ -29,13 +29,13 @@ if(__name__=="__main__"):
             if(plateloc in plates):
                 impath = os.path.join(".",img_folder,plateloc+".png")
                 impath_calib = os.path.join(".",img_folder,plateloc+"_calibrated.png")
-                x.get_plate(plateloc)
-                x.put_plate("0","plate_backlight","up")
-                x.grab_lid()
-                #TODO move up here
-                x.move_robot(px=x.robopos["neutral_position"]["0"]["X"])
-                x.light_on(.7)
-                x.send_gcode_multiline(["M400"])
+                motionsystem.get_plate(plateloc)
+                motionsystem.put_plate("0","plate_backlight","up")
+                motionsystem.grab_lid()
+                motionsystem.move_robot(pz = 65)
+                motionsystem.move_robot(px=motionsystem.robopos["neutral_position"]["0"]["X"])
+                motionsystem.light_on(.7)
+                motionsystem.send_gcode_multiline(["M400"])
                 #capture the image using the camera
                 camera.capture(rawCapture,format="bgr")
                 img = rawCapture.array
@@ -49,14 +49,14 @@ if(__name__=="__main__"):
                 
                 cv2.imwrite(impath_calib,dst)
 
-                x.light_off()
-                x.place_lid()
-                x.get_plate("0","plate_backlight","up")
-                x.put_plate(staging_floors[0],"plate_staging")
+                motionsystem.light_off()
+                motionsystem.place_lid()
+                motionsystem.get_plate("0","plate_backlight","up")
+                motionsystem.put_plate(staging_floors[0],"plate_staging")
                 plates_stored.append([staging_floors[0],plateloc])
                 staging_floors = staging_floors[1:]
         for plate_stored in plates_stored[::-1]:
-            x.get_plate(plate_stored[0],"plate_staging")
-            x.put_plate(plate_stored[1])
+            motionsystem.get_plate(plate_stored[0],"plate_staging")
+            motionsystem.put_plate(plate_stored[1])
         #TODO reset plates stored every stack
         plates_stored = []
