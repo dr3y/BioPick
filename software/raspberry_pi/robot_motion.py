@@ -188,9 +188,6 @@ class colonyPicker:
         assert(self.robopos is not None)
         lid_up = self.robopos["servo"]["lid_up"]["S0pos"]
         self.servo_move(0,lid_up)
-    def sync(self):
-        assert(self.robocomm is not None)
-
     def get_plate(self,platepos="0",platepos_name="plate_stack",plate_orientation="down"):
         assert(self.robopos is not None)
         top_pos = self.robopos["z_heights"]["top"]["Z"]
@@ -244,6 +241,14 @@ class colonyPicker:
         self.move_robot(pz = plate_pos_coords["Z"],F=400)
         self.ungrip()
         self.move_robot(pz = top_pos)
+    def induction_heat(self,time_sec,power=255):
+        """activate the heater for some number of seconds"""
+        self.send_gcode_multiline(["M140 S{}".format(str(power)),\
+                "G4 P{}".format(str(int(6000*float(time_sec)))),\
+                "M140 S0"])
+    def sync(self):
+        """wait until all movements are done"""
+        self.send_gcode_multiline(["M500"])
     def grab_lid(self,platepos="0",platepos_name="plate_backlight"):
         assert(self.robopos is not None)
         if(not (platepos in self.robopos[platepos_name])):
