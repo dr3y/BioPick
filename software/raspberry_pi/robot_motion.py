@@ -244,7 +244,7 @@ class colonyPicker:
     def induction_heat(self,time_sec,power=255):
         """activate the heater for some number of seconds"""
         self.send_gcode_multiline(["M140 S{}".format(str(power)),\
-                "G4 P{}".format(str(int(6000*float(time_sec)))),\
+                "G4 P{}".format(str(int(1000*float(time_sec)))),\
                 "M140 S0"])
     def sync(self):
         """wait until all movements are done"""
