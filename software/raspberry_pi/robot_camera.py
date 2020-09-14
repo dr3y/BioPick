@@ -1,7 +1,11 @@
 import numpy as np
 import cv2
-from picamera import PiCamera
-from picamera.array import PiRGBArray
+try:
+    from picamera import PiCamera
+    from picamera.array import PiRGBArray
+    CAMERA_ACTIVE = True
+except ModuleNotFoundError:
+    CAMERA_ACTIVE = False
 import pickle
 import glob
 import os
@@ -17,10 +21,13 @@ class robo_camera:
             self.mtx = mtx
             self.dist = dist
             self.cam_calibrated = True
-        self.camera = PiCamera()
-        self.camera.resolution = resolution
-        self.camera.shutter_speed = 2000
+        if(CAMERA_ACTIVE):
+            self.camera = PiCamera()
+            self.camera.resolution = resolution
+            self.camera.shutter_speed = 2000
     def capture(self,savepath=None):
+        if(not CAMERA_ACTIVE):
+            return None
         rawCapture = PiRGBArray(self.camera)
         self.camera.capture(rawCapture,format="bgr")
         img = rawCapture.array
@@ -42,7 +49,7 @@ class robo_camera:
             bg_image = self.capture()
         bgimg_gray = cv2.cvtColor(bg_image,cv2.COLOR_BGR2GRAY)
         bg_subtractor = cv2.createBackgroundSubtractorMOG2()
-        fgmask = fgbg.apply(bgimg_gray) #the first image is the background
+        fgmask = bg_subtractor.apply(bgimg_gray) #the first image is the background
 
         kernel = np.ones((5,5), np.uint8) 
         ret,thresh = cv2.threshold(bgimg_gray,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU) 
