@@ -82,8 +82,12 @@ class robo_camera:
 
         ret,binary_needlepic = cv2.threshold(bgmask,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
-        contours,_= cv2.findContours(binary_needlepic, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
+        outputvalues = cv2.findContours(binary_needlepic, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        #following is for compatibility with the raspberry pi version of opencv
+        if(len(outputvalues)== 3):
+            contours = outputvalues[1]
+        elif(len(outputvalues)==2):
+            contours = outputvalues[0]
         biggest_contour = np.zeros((binary_needlepic.shape[0],binary_needlepic.shape[1],1),np.uint8)
         newcontours = []
         area_thresh = 100
