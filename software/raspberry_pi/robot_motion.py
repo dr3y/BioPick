@@ -112,6 +112,16 @@ class colonyPicker:
                     self.robocomm.flush()
                     machine_output=self.read_till_ok()
         return machine_output
+    def home(self):
+        self.send_gcode_multiline(rcd.gcode_home())
+    #TODO def get_current_pos(self):
+    #    pos_output = self.send_gcode_multiline(["M114"])
+    #    for sline in pos_output.split("\\n"):
+
+    #def safe_move_robot(self,px=None,py=None,pz=None,pe=None,F=None):
+    #    top_pos = self.robopos["z_heights"]["top"]["Z"]
+    #    if((px is not None) or (py is not None)):
+    #        self.move_robot(pz = top_pos)
     def get_servo_pos(self,servonum=0):
         self.send_gcode_multiline(["M400"])
         servo_output = self.send_gcode_multiline(["M280 P"+str(servonum)])
@@ -129,7 +139,7 @@ class colonyPicker:
         curtime_minutes = time.time()/60
         if(curtime_minutes - self.lasthomed >= self.hometimeout):
             #this means the robot hasnt homed in a while and should home asap
-            self.send_gcode_multiline(rcd.gcode_home())
+            self.home()
         curtime_minutes = time.time()/60
         self.lasthomed = curtime_minutes
         drive_feed = 2500
