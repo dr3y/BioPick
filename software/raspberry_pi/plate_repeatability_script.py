@@ -40,12 +40,12 @@ if(__name__=="__main__"):
         for plate_num in motionsystem.plate_order[stack]:
             plateloc = stack+str(plate_num)
             if(plateloc in plates):
-                impath_calib = os.path.join(".",img_folder,plateloc+"_calibrated.png")
+                impath_calib = os.path.join(".",img_folder,plateloc+"_calib.png")
                 motionsystem.get_plate(plateloc)
                 motionsystem.put_plate("0","plate_backlight","up")
                 motionsystem.grab_lid()
                 #go up after grabbing the lid to avoid the induction heater
-                motionsystem.move_robot(pz = 65)
+                motionsystem.move_robot(pz = 68)
                 #move back so the camera can see the plate
                 motionsystem.move_robot(px=motionsystem.robopos["neutral_position"]["0"]["X"])
                 motionsystem.light_on(.7) #lights on
