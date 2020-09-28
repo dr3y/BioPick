@@ -28,8 +28,8 @@ class colonyPicker:
         #{"A1":"testconstruct1","A2":"con2_2"}
         #numbers are the plate position, strings are the names of the plates
         #TODO: validate plate dict
-
-    def load_posfile(self,posfilename):
+    @classmethod
+    def load_posfile(cls,posfilename):
         posdict = {}
         with open(posfilename) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')

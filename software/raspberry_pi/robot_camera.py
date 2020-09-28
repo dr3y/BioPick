@@ -102,4 +102,52 @@ class robo_camera:
         corners = np.int0(corners)
         assert(len(corners[0])==1)
         return corners[0][0]
+
+    def needle_jog_calibration(self,bgimg_path,needlepath_dict):
+        """performs the calibration that is required for rectifying an image given four pictures of the colony picking needle in different positions..
+        bgimg_path: path to an image of the background with no needle
+        needlepath_dict: a dictionary containing a needle image path as the key with the corresponding x,y,z coordinates as the value."""
+        bgimg = cv2.imread(bgimg_path)
+        
+        thresh,bg_subtractor = self.mask_lit_background(bgimg)
+        needlepoints = {}
+        needle_positions = []
+        for needle_image in needlepath_dict:
+            needle_pos = tuple(needlepath_dict[needle_image])
+            needle_positions += [needle_pos]
+            img = cv2.imread(needle_image)
+            npoint = self.detect_needle(thresh = thresh,\
+                    bg_subtractor=bg_subtractor,needle_image=img)
+            needlepoints[needle_pos]= npoint
+        
+        
+        needle_xs = [a[0] for a in needle_positions]
+        needle_ys = [a[1] for a in needle_positions]
+        #needle_zs = [a[2] for a in needle_positions]
+        sorted_positions = [
+            (max(needle_xs),min(needle_ys)),
+            (max(needle_xs),max(needle_ys)),
+            (min(needle_xs),max(needle_ys)),
+            (min(needle_xs),min(needle_ys)),
+        ]
+        sorted_needlepoint = []
+        for sorted_pos in sorted_positions:
+            sorted_needlepoint += [needlepoints[sorted_pos]]
+        square = np.array([[0,200],[150,200],[150,50],[0,50]],np.float32)+150
+        trapezoid = np.array(sorted_needlepoint,np.float32)
+        transform = cv2.getPerspectiveTransform(trapezoid,square) #the transformation matrix
+
+
+
+
+        square_2d = square[:2]
+        #robo_x = rm.colonyPicker.load_posfile(posfilename="robot_positions.csv")["needle_pos"]["backlit_plate"]["X"]
+        #robo_y = rm.colonyPicker.load_posfile(posfilename="robot_positions.csv")["needle_pos"]["backlit_plate"]["Y"]
+        robot_square = np.array(needle_positions[:2],np.float32)
+        #np.array([[10,-10],[10,10]],np.float32) #,[robo_x-10,robo_y+10],[robo_x-10,robo_y-10]
+        tf_mtx = np.dot(np.linalg.inv(square_2d),robot_square)
+        #robo_point = np.array([[robo_x,robo_y]],np.float32)
+
+        return transform, tf_mtx
+
         
