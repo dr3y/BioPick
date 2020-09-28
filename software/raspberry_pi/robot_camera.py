@@ -9,15 +9,21 @@ except ModuleNotFoundError:
 import pickle
 import glob
 import os
+import time
+import peakutils.peak
 from IPython.display import Image
 
+def smooth(y, box_pts):
+    box = np.ones(box_pts)/box_pts
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth
 class robo_camera:
     def __init__(self,resolution="1920x1080",shutter_speed=2000,camera_matrix="camera_matrix.pckl"):
         self.mtx = None
         self.dist = None
         self.cam_calibrated = False
         if(camera_matrix is not None):
-            pickfle = open(camera_matrix,"rb")
+            pickfle = open(camera_matrix, "rb")
             mtx,dist = pickle.load(pickfle)
             self.mtx = mtx
             self.dist = dist
@@ -26,6 +32,109 @@ class robo_camera:
             self.camera = PiCamera()
             self.camera.resolution = resolution
             self.camera.shutter_speed = 2000
+    def init_blob_detector(self):
+        #################BLOB DETECTOR###############
+        params = cv2.SimpleBlobDetector_Params()
+        # Change thresholds
+        params.minThreshold = 170
+        params.maxThreshold = 255
+
+        # Filter by Area.
+        params.filterByArea = True
+        params.minArea = 27
+        params.maxArea = 100
+
+        # Filter by Circularity
+        params.filterByCircularity = True
+        params.minCircularity = 0.9
+
+        # Filter by Convexity
+        params.filterByConvexity = True
+        params.minConvexity = 0.95
+
+        # Filter by Inertia
+        params.filterByInertia = True
+        params.minInertiaRatio = 0.8
+
+        # Create a detector with the parameters
+        detector = cv2.SimpleBlobDetector_create(params)
+        return detector
+    def detect_colonies(self,impath,image_transform,vector_transform,display_image=False,save_image=True):
+        img = cv2.imread(os.path.join('.','pictures',impath))
+        x = time.localtime()
+        tstamp = str(x.tm_year)[2:]+str(x.tm_mon)+str(x.tm_mday)+str(x.tm_hour)+str(x.tm_min)
+        colonypick_path = os.path.join('.','pictures',str(tstamp+'_picked_'+impath))
+
+        #this next part warps the image so that it is rectified and in the middle of the frame
+        transform = image_transform
+        warp = cv2.warpPerspective(img,transform,(500,550)) #transforming the calibrated image
+        warp_gray = cv2.cvtColor(warp,cv2.COLOR_BGR2GRAY)
+        #making a mask for colony finding
+        warp_empty = np.zeros(shape=[550, 500, 1], dtype=np.uint8)
+        center_coordinates = (230, 250) 
+        axesLength = (170, 140) 
+        warp_colony_mask = cv2.ellipse(warp_empty,center_coordinates,axesLength,0,0,360,255,-1)
+        warp_gray_inv = 255-warp_gray
+        warp_blur = cv2.GaussianBlur(warp_gray_inv,(101,101),50,borderType=cv2.BORDER_DEFAULT)
+        #background subtraction
+        colony_nobg = cv2.subtract(warp_gray_inv,warp_blur)
+        colony_crop = (255-cv2.bitwise_and(colony_nobg, colony_nobg, mask=warp_colony_mask))*4
+        #colony_crop = colony_crop.convertTo(colony_crop,cv2.CV_8U)
+        maxval = np.max(colony_crop) #maximum pixel value in the image
+        minval = np.min(colony_crop) #minimum pixel value in the image
+
+        gaus = cv2.adaptiveThreshold(colony_crop, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 91, 12)
+        
+        gaus_eroded = cv2.erode(gaus,np.ones([3,3]))
+        #cv2.imwrite('testimage.png',gaus)
+        #display(Image('testimage.png'))
+
+
+        detector = self.init_blob_detector()
+        #blob detection
+        keypoints = detector.detect(gaus_eroded)
+        print(keypoints)
+        #print(len(keypoints))        
+        warp_with_keypoints = cv2.drawKeypoints(warp, keypoints,\
+                        np.array([]), 255, cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        if(save_image):
+            cv2.imwrite(colonypick_path, warp_with_keypoints)
+            if(display_image):
+                display(Image(filename=colonypick_path))
+        elif(display_image):
+            cv2.imwrite("testimage.png", warp_with_keypoints)
+            display(Image(filename="testimage.png"))
+        imstripe = warp[30:110, 215:235]
+        imstripe_gray = cv2.cvtColor(imstripe, cv2.COLOR_BGR2GRAY)
+        im_trace = np.mean(imstripe_gray, axis=1)
+        im_deriv = smooth(-np.gradient(im_trace, 10), 4)
+        #plt.figure()
+        #plt.title(impath)
+        im_base = peakutils.baseline(im_deriv, 2)
+        im_deriv_debased = im_deriv-im_base
+        #plt.plot(im_deriv_debased,label=impath)
+        #plt.legend()
+
+        highs = peakutils.peak.indexes(
+            im_deriv_debased,
+            thres=1/max(im_deriv_debased), min_dist=20
+        )
+        filteredhighs = []
+        for high in highs:
+            if(high >15 and high < 70):
+                filteredhighs += [high]
+        high_data = []
+        for high in filteredhighs:
+            yval = im_deriv_debased[high]
+            high_data += [[yval,high]]
+        #plt.plot([a[1] for a in high_data],[a[0] for a in high_data],'o')
+        if(len(filteredhighs) != 2):
+            agar_to_rim_distance = 34 #default assumption
+        else:
+            agar_to_rim_distance = filteredhighs[1]-filteredhighs[0]
+        
+        print("agar to rim distance is "+str(agar_to_rim_distance))
+        return keypoints
     def capture(self,savepath=None):
         if(not CAMERA_ACTIVE):
             return None
