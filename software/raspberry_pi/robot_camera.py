@@ -42,7 +42,7 @@ class robo_camera:
         # Filter by Area.
         params.filterByArea = True
         params.minArea = 27
-        params.maxArea = 100
+        params.maxArea = 130
 
         # Filter by Circularity
         params.filterByCircularity = True
@@ -85,9 +85,11 @@ class robo_camera:
 
         gaus = cv2.adaptiveThreshold(colony_crop, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 91, 12)
         
-        gaus_eroded = cv2.erode(gaus,np.ones([3,3]))
-        #cv2.imwrite('testimage.png',gaus)
-        #display(Image('testimage.png'))
+        gaus_eroded = cv2.dilate(gaus,np.ones([3,3]),iterations=1)
+        gaus_eroded = cv2.erode(gaus_eroded,np.ones([3,3]),iterations=1)
+        #gaus_eroded = gaus
+        cv2.imwrite('testimage.png',gaus_eroded)
+        display(Image('testimage.png'))
 
 
         detector = self.init_blob_detector()
