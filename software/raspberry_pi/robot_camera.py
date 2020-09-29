@@ -32,34 +32,35 @@ class robo_camera:
             self.camera = PiCamera()
             self.camera.resolution = resolution
             self.camera.shutter_speed = 2000
-    def init_blob_detector(self):
+    def init_blob_detector(self,mint=130,maxt=500,mina=27,maxa=130,mincir=0.9,mincon=0.95,minin=.8):
         #################BLOB DETECTOR###############
         params = cv2.SimpleBlobDetector_Params()
         # Change thresholds
-        params.minThreshold = 170
-        params.maxThreshold = 255
+        params.minThreshold = mint
+        params.maxThreshold = maxt
 
         # Filter by Area.
         params.filterByArea = True
-        params.minArea = 27
-        params.maxArea = 130
+        params.minArea = mina
+        params.maxArea = maxa
 
         # Filter by Circularity
         params.filterByCircularity = True
-        params.minCircularity = 0.9
+        params.minCircularity = mincir
 
         # Filter by Convexity
         params.filterByConvexity = True
-        params.minConvexity = 0.95
+        params.minConvexity = mincon
 
         # Filter by Inertia
         params.filterByInertia = True
-        params.minInertiaRatio = 0.8
+        params.minInertiaRatio = minin
 
         # Create a detector with the parameters
         detector = cv2.SimpleBlobDetector_create(params)
         return detector
-    def detect_colonies(self,impath,image_transform,vector_transform,display_image=False,save_image=True):
+    def detect_colonies(self,impath,image_transform,vector_transform,display_image=False,save_image=True,\
+                                            mint=130,maxt=500,mina=27,maxa=130,mincir=0.9,mincon=0.95,minin=.8):
         img = cv2.imread(os.path.join('.','pictures',impath))
         x = time.localtime()
         tstamp = str(x.tm_year)[2:]+str(x.tm_mon)+str(x.tm_mday)+str(x.tm_hour)+str(x.tm_min)
@@ -88,11 +89,11 @@ class robo_camera:
         gaus_eroded = cv2.dilate(gaus,np.ones([3,3]),iterations=1)
         gaus_eroded = cv2.erode(gaus_eroded,np.ones([3,3]),iterations=1)
         #gaus_eroded = gaus
-        cv2.imwrite('testimage.png',gaus_eroded)
-        display(Image('testimage.png'))
+        #cv2.imwrite('testimage.png',gaus_eroded)
+        #display(Image('testimage.png'))
 
 
-        detector = self.init_blob_detector()
+        detector = self.init_blob_detector(mint=mint,maxt=maxt,mina=mina,maxa=maxa,mincir=mincir,mincon=mincon,minin=minin)
         #blob detection
         keypoints = detector.detect(gaus_eroded)
         print(keypoints)
