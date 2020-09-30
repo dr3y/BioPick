@@ -245,19 +245,21 @@ class robo_camera:
         sorted_needlepoint = []
         for sorted_pos in sorted_positions:
             sorted_needlepoint += [needlepoints[sorted_pos]]
-        square = np.array([[0,200],[150,200],[150,50],[0,50]],np.float32)+150
+        squarelist = [[0,200],[150,200],[150,50],[0,50]]
+        square = np.array(squarelist,np.float32)+150
         trapezoid = np.array(sorted_needlepoint,np.float32)
         transform = cv2.getPerspectiveTransform(trapezoid,square) #the transformation matrix
 
 
 
 
-        square_2d = square[:2]
+        square_2d = square
         #robo_x = rm.colonyPicker.load_posfile(posfilename="robot_positions.csv")["needle_pos"]["backlit_plate"]["X"]
         #robo_y = rm.colonyPicker.load_posfile(posfilename="robot_positions.csv")["needle_pos"]["backlit_plate"]["Y"]
-        robot_square = np.array(needle_positions[:2],np.float32)
+        robot_square = np.array(needle_positions,np.float32)
         #np.array([[10,-10],[10,10]],np.float32) #,[robo_x-10,robo_y+10],[robo_x-10,robo_y-10]
-        tf_mtx = np.dot(np.linalg.inv(square_2d),robot_square)
+        #tf_mtx = np.dot(np.linalg.inv(square_2d),robot_square)
+        tf_mtx = cv2.getPerspectiveTransform(square,robot_square)
         #robo_point = np.array([[robo_x,robo_y]],np.float32)
 
         return transform, tf_mtx
