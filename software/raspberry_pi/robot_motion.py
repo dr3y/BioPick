@@ -131,6 +131,10 @@ class colonyPicker:
                 newsplit = sline.split(":")
                 posnum = int(newsplit[-1])
         return posnum
+    def get_XYZE_pos(self):
+        self.send_gcode_multiline(["M400"])
+        position_output = self.send_gcode_multiline(["M114"])
+        print(position_output)
     def move_robot(self,px=None,py=None,pz=None,pe=None,F=None):
         assert(sum([px is not None,py is not None, pz is not None, pe is not None])>=1)
         if(self.robocomm is None or not self.robocomm.is_open):
