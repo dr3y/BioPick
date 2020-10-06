@@ -3,7 +3,7 @@ Description=Jupyter Notebook
 After=network.target
 
 [Service]
-ExecStart=/home/pi/.local/bin/jupyter notebook --no-browser --notebook-dir=/home/pi/BioPick/software/raspberry_pi
+ExecStart=/usr/local/bin/jupyter notebook --no-browser --notebook-dir=/home/pi/BioPick/software/raspberry_pi
 Type=simple
 WorkingDirectory=/home/pi/BioPick/software/raspberry_pi
 StandardOutput=inherit
