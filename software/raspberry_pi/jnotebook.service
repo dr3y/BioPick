@@ -1,0 +1,15 @@
+[Unit]
+Description=Jupyter Notebook
+After=network.target
+
+[Service]
+ExecStart=/home/pi/.local/bin/jupyter notebook --no-browser --notebook-dir=/home/pi/BioPick/software/raspberry_pi
+Type=simple
+WorkingDirectory=/home/pi/BioPick/software/raspberry_pi
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target

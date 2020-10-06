@@ -96,8 +96,8 @@ class robo_camera:
         detector = self.init_blob_detector(mint=mint,maxt=maxt,mina=mina,maxa=maxa,mincir=mincir,mincon=mincon,minin=minin)
         #blob detection
         keypoints = detector.detect(gaus_eroded)
-        print(keypoints)
-        #print(len(keypoints))        
+        #print(keypoints)
+        print(len(keypoints))        
         warp_with_keypoints = cv2.drawKeypoints(warp, keypoints,\
                         np.array([]), 255, cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         if(save_image):
@@ -111,12 +111,8 @@ class robo_camera:
         imstripe_gray = cv2.cvtColor(imstripe, cv2.COLOR_BGR2GRAY)
         im_trace = np.mean(imstripe_gray, axis=1)
         im_deriv = smooth(-np.gradient(im_trace, 10), 4)
-        #plt.figure()
-        #plt.title(impath)
         im_base = peakutils.baseline(im_deriv, 2)
         im_deriv_debased = im_deriv-im_base
-        #plt.plot(im_deriv_debased,label=impath)
-        #plt.legend()
 
         highs = peakutils.peak.indexes(
             im_deriv_debased,
@@ -136,7 +132,7 @@ class robo_camera:
         else:
             agar_to_rim_distance = filteredhighs[1]-filteredhighs[0]
         
-        print("agar to rim distance is "+str(agar_to_rim_distance))
+        #print("agar to rim distance is "+str(agar_to_rim_distance))
         return keypoints
     def capture(self,savepath=None):
         if(not CAMERA_ACTIVE):

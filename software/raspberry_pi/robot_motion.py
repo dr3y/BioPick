@@ -2,6 +2,7 @@ import csv
 import serial
 import time
 import robot_gcodes as rcd
+import os
 #(Robot)
 
 class colonyPicker:
@@ -163,6 +164,48 @@ class colonyPicker:
             self.send_gcode_multiline([xymove])
         if(pe is not None):
             self.send_gcode_multiline(["G1 E{} F{}".format(str(pe),str(plate_shake_feed))])
+    @classmethod
+    def calculate_needle_positions(cls,square_radius=10,folder_path = os.path.join(".","calibration"),picprefix="needlepos",posfile_name="robot_positions.csv"):
+        npos1 = os.path.join(folder_path,picprefix+"1.png")
+        npos2 = os.path.join(folder_path,picprefix+"2.png")
+        npos3 = os.path.join(folder_path,picprefix+"3.png")
+        npos4 = os.path.join(folder_path,picprefix+"4.png")
+        needle_pics = [npos1,npos2,npos3,npos4]
+        needle_middle = [cls.load_posfile(posfilename=posfile_name)["needle_pos"]["backlit_plate"]["X"],
+             cls.load_posfile(posfilename=posfile_name)["needle_pos"]["backlit_plate"]["Y"]]
+
+        needle_pos = [(needle_middle[0]+square_radius,needle_middle[1]-square_radius),
+              (needle_middle[0]+square_radius,needle_middle[1]+square_radius),
+              (needle_middle[0]-square_radius,needle_middle[1]+square_radius),
+              (needle_middle[0]-square_radius,needle_middle[1]-square_radius)]
+        needle_dict = {a[0]:a[1] for a in zip(needle_pics,needle_pos)}
+        return needle_dict
+    def needle_jog_calibration(self,camera_obj,square_radius=10,zlift=2):
+        needle_middle = [self.robopos["needle_pos"]["backlit_plate"]["X"],
+             self.robopos["needle_pos"]["backlit_plate"]["Y"]]
+        ltable = os.path.join(".","calibration","lighttable.png")
+        needle_dict = self.calculate_needle_positions(square_radius)
+
+        self.move_robot(px=self.robopos["neutral_position"]["0"]["X"],\
+                        py = self.robopos["neutral_position"]["0"]["Y"],\
+                        pz=self.robopos["neutral_position"]["0"]["Z"])
+        self.send_gcode_multiline(["M400"])
+        self.light_on()
+        img = camera_obj.capture(ltable) #blank light table photo
+        for a in needle_dict:
+            npic = a
+            npos = needle_dict[a]
+            noffset_x = npos[0]-needle_middle[0]
+            noffset_y = npos[1]-needle_middle[1]
+            self.move_needle("backlit_plate","needle_pos",retract = False,\
+                 offset_x = noffset_x,offset_y = noffset_y,offset_z = zlift)
+            self.send_gcode_multiline(["M400"])
+            img = camera_obj.capture(npic)
+        self.light_off()
+        self.move_robot(pz = 68)
+        #move back so the camera can see the plate
+        self.move_robot(px=self.robopos["neutral_position"]["0"]["X"])
+        return ltable,needle_dict
     def servo_move(self,servonum,position):
         if(self.robocomm is None or not self.robocomm.is_open):
             print("Robot is not connected")
