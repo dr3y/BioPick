@@ -13,6 +13,9 @@ import time
 import peakutils.peak
 from IPython.display import Image
 
+def show_image(img):
+    cv2.imwrite('testimage.png',img)
+    display(Image(filename="testimage.png"))
 def smooth(y, box_pts):
     box = np.ones(box_pts)/box_pts
     y_smooth = np.convolve(y, box, mode='same')
@@ -157,8 +160,8 @@ class robo_camera:
         if(bg_image is None):
             bg_image = self.capture()
         bgimg_gray = cv2.cvtColor(bg_image,cv2.COLOR_BGR2GRAY)
-        bg_subtractor = cv2.createBackgroundSubtractorMOG2()
-        fgmask = bg_subtractor.apply(bgimg_gray) #the first image is the background
+        #bg_subtractor = cv2.createBackgroundSubtractorMOG2()
+        #fgmask = bg_subtractor.apply(bgimg_gray) #the first image is the background
 
         #kernel = np.ones((5,5), np.uint8) 
         kernel = np.array([[0, 1, 1, 1, 0],
@@ -171,7 +174,7 @@ class robo_camera:
         thresh = cv2.erode(thresh,kernel,iterations=1) #get rid of noise
         thresh = cv2.dilate(thresh,kernel,iterations=2) #fill up the holes
         thresh = cv2.erode(thresh,kernel,iterations=10) #make it smaller
-        return thresh, bg_subtractor
+        return thresh, bgimg_gray #bg_subtractor
     def detect_needle(self,bg_image=None,thresh=None,bg_subtractor=None,needle_image=None):
         """detects a needle on top of a lit backdrop"""
         #setup background subtraction
@@ -180,11 +183,14 @@ class robo_camera:
             assert((thresh is not None) and (bg_subtractor is not None))
         else:
             thresh,bg_subtractor = self.mask_lit_background(bg_image)
+        #show_image(bg_subtractor)
+        #cv2.imshow("",bg_subtractor)
         #now the mask which represents the table is called "thresh"
         if(needle_image is None):
             needle_image = self.capture()
-        gray = cv2.cvtColor(needle_image,cv2.COLOR_BGR2GRAY)
-        bgmask = bg_subtractor.apply(gray,learningRate=0) #learningrate 0 means another image never becomes the new background
+        gray = 255-cv2.cvtColor(needle_image,cv2.COLOR_BGR2GRAY)
+        bgmask = cv2.subtract(gray,255-bg_subtractor)
+        #show_image(bgmask)
         bgmask = cv2.erode(bgmask,kernel,iterations=1) #erode a bit to get rid of junk
         #bgmask = cv2.dilate(bgmask,kernel,iterations=1) #erode a bit to get rid of junk
 
